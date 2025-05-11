@@ -1,13 +1,17 @@
 package digital.overman.plcodingdesignpatterns.components
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -21,63 +25,95 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import digital.overman.plcodingdesignpatterns.ui.theme.PLCodingDesignPatternsTheme
 
 @Composable
-fun SingleRowSelector(
-    title: String,
-    items: List<String>,
+fun <T> SingleRowSelector(
+    items: List<T>,
     selectedIndex: Int = 0,
-    onItemSelected: ((Int) -> Unit)? = null,
+    onItemSelected: ((T) -> Unit)? = null,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     selectorColor: Color = Color.White,
+    shape: Shape = RoundedCornerShape(16.dp),
+    selectorPadding: Dp = 4.dp,
+    itemPadding: Dp = 12.dp
 ) {
     var selected by remember { mutableIntStateOf(selectedIndex) }
+    val density = LocalDensity.current
+    var rowWidth by remember { mutableIntStateOf(0) }
+    var rowHeight by remember { mutableIntStateOf(0) }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .wrapContentHeight()
+            .background(
+                color = backgroundColor,
+                shape = shape
+            )
+            .padding(selectorPadding)
+            .onSizeChanged {
+                rowWidth = it.width
+                rowHeight = it.height
+            }
     ) {
-        Text(
-            text = title
-        )
+        if (rowWidth > 0) {
+            val selectorWidth = rowWidth / items.size
+            val selectorDp = with(density) { selectorWidth.toDp() }
+            val selectorHeight = with(density) { rowHeight.toDp() }
+            val offsetX by animateIntAsState(
+                targetValue = selected * selectorWidth,
+                label = "offsetX"
+            )
+
+            Box(
+                modifier = Modifier
+                    .offset { IntOffset(x = offsetX, y = 0) }
+                    .size(width = selectorDp, height = selectorHeight)
+                    .background(selectorColor, shape)
+            )
+        }
+
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    color = backgroundColor,
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(4.dp)
-            ,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEachIndexed { i, item ->
+                val textColor by animateColorAsState(
+                    targetValue = if (i == selected) contentColorFor(selectorColor)
+                    else contentColorFor(backgroundColor),
+                    label = "textColor"
+                )
+
                 Text(
-                    text = item,
-                    color = if (i == selected) contentColorFor(selectorColor) else contentColorFor(backgroundColor),
+                    text = item.toString(),
+                    color = textColor,
                     modifier = Modifier
                         .weight(1f)
-                        .fillMaxWidth()
-                        .clickable(
-                            interactionSource = MutableInteractionSource(),
-                            indication = null
-                        ) {
+                        .clickable(interactionSource = null, indication = null) {
                             selected = i
-                            onItemSelected?.invoke(i)
+                            onItemSelected?.invoke(item)
                         }
-                        .background(
-                            color = if (i == selected) selectorColor else backgroundColor,
-                            shape = RoundedCornerShape(16.dp)
-                        )
                         .wrapContentWidth()
-                        .padding(12.dp)
+                        .padding(itemPadding)
                 )
             }
         }
+    }
+}
+
+enum class Thousands(private val item: String) {
+    COMMA("1,000"), PERIOD("1.000"), SPACE("1 000");
+
+    override fun toString(): String {
+        return item
     }
 }
 
@@ -85,12 +121,14 @@ fun SingleRowSelector(
 @Composable
 private fun SingleRowSelectorPreview() {
     PLCodingDesignPatternsTheme {
-        SingleRowSelector(
-            title = "Thousands separator",
-            items = listOf(
-                "1,000", "1.000", "1 000"
-            ),
-            onItemSelected = {}
-        )
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Thousands separator",
+            )
+            SingleRowSelector(
+                items = listOf(Thousands.COMMA, Thousands.PERIOD, Thousands.SPACE),
+                onItemSelected = {}
+            )
+        }
     }
 }
