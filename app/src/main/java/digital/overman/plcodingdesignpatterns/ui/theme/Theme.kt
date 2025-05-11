@@ -11,17 +11,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
+    primary = activeStar,
     secondary = PurpleGrey80,
-    tertiary = Pink80,
-    surface = Pink80,
+    tertiary = inactiveDarkStar,
+    surface = moodDarkSurface,
+    onSurface = moodDarkOnSurface,
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
+    primary = activeStar,
     secondary = PurpleGrey40,
-    tertiary = Pink40,
-    surface = Pink40,
+    tertiary = inactiveLightStar,
+    surface = moodLightSurface,
+    onSurface = moodLightOnSurface
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -32,6 +34,7 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+
 
 @Composable
 fun PLCodingDesignPatternsTheme(
