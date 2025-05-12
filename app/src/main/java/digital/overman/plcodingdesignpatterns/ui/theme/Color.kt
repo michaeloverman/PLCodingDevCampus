@@ -32,3 +32,7 @@ val moodLightBackground = Brush.verticalGradient(
         Color(0xFF6689F9),
     )
 )
+
+val weatherCardPrimaryText = Color(0xFF14171E)
+val weatherCardSecondaryText = Color(0xFF474F63)
+val weatherCardOrangeText = Color(0xFFCD533C)

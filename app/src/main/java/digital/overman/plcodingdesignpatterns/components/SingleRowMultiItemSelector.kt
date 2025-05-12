@@ -4,9 +4,11 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -16,7 +18,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -87,8 +88,9 @@ fun <T> SingleRowSelector(
         ) {
             items.forEachIndexed { i, item ->
                 val textColor by animateColorAsState(
-                    targetValue = if (i == selected) contentColorFor(selectorColor)
-                    else contentColorFor(backgroundColor),
+                    targetValue = if (i == selected) Color(0xFF1B1B1C)
+//                    targetValue = if (i == selected) contentColorFor(selectorColor)
+                    else MaterialTheme.colorScheme.onSurface,
                     label = "textColor"
                 )
 
@@ -121,12 +123,18 @@ enum class Thousands(private val item: String) {
 @Composable
 private fun SingleRowSelectorPreview() {
     PLCodingDesignPatternsTheme {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFEF7FF))
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
             Text(
                 text = "Thousands separator",
             )
             SingleRowSelector(
-                items = listOf(Thousands.COMMA, Thousands.PERIOD, Thousands.SPACE),
+                items = listOf(Thousands.PERIOD, Thousands.COMMA, Thousands.SPACE),
                 onItemSelected = {}
             )
         }
