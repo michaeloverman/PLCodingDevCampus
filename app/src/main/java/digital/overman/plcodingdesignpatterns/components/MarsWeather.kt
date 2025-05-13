@@ -1,6 +1,7 @@
 package digital.overman.plcodingdesignpatterns.components
 
 import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -25,14 +26,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import digital.overman.plcodingdesignpatterns.R
@@ -40,6 +48,7 @@ import digital.overman.plcodingdesignpatterns.ui.theme.PLCodingDesignPatternsThe
 import digital.overman.plcodingdesignpatterns.ui.theme.moodDarkBackground
 import digital.overman.plcodingdesignpatterns.ui.theme.weatherCardOrangeText
 import digital.overman.plcodingdesignpatterns.ui.theme.weatherCardPrimaryText
+import digital.overman.plcodingdesignpatterns.ui.theme.weatherCardPurpleText
 import digital.overman.plcodingdesignpatterns.ui.theme.weatherCardSecondaryText
 
 @Composable
@@ -76,10 +85,7 @@ data class MarsWeatherData(
     val currentTemp: Int,
     val highTemp: Int,
     val lowTemp: Int,
-    val windSpeedDirString: String,
-    val pressureString: String,
-    val uvRadiationString: String,
-    val martianData: String
+    val dataBoxList: List<DataBoxItem>,
 )
 
 @Composable
@@ -88,12 +94,32 @@ fun MarsWeather(
 ) {
     MarsWeatherScaffold {
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             MarsWeatherCard(data)
         }
+    }
+}
+
+class CutTopRightCornerShape(
+    private val cutCornerSize: Dp
+) : Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: LayoutDirection,
+        density: Density
+    ): Outline {
+        val cornerCut = with(density) { cutCornerSize.toPx() }
+        val path = Path().apply {
+            moveTo(0f, 0f)
+            lineTo(size.width - cornerCut, 0f)
+            lineTo(size.width, cornerCut)
+            lineTo(size.width, size.height)
+            lineTo(0f, size.height)
+            close()
+        }
+        return Outline.Generic(path)
     }
 }
 
@@ -104,18 +130,16 @@ fun MarsWeatherCard(
 ) {
     Card(
         modifier = modifier.width(310.dp),
-        shape = RectangleShape,
+        shape = CutTopRightCornerShape(24.dp),
         colors = CardDefaults.cardColors().copy(
             containerColor = Color.White
         )
     ) {
-        Column(
-            Modifier.padding(16.dp)
-        ) {
+        Column(Modifier.padding(16.dp)) {
             IconLabel(
                 title = data.location,
                 icon = R.drawable.map_point,
-                color = Color(0xFF9E83C5),
+                color = weatherCardPurpleText,
                 iconAlpha = 0.3f
             )
 
@@ -126,7 +150,7 @@ fun MarsWeatherCard(
                 verticalAlignment = Alignment.Bottom,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column() {
+                Column {
                     IconLabel(
                         title = data.description,
                         icon = data.descriptionIconResource,
@@ -149,9 +173,7 @@ fun MarsWeatherCard(
                     }
                 }
 
-                Column(
-                    modifier = Modifier.padding(bottom = 10.dp)
-                ) {
+                Column(modifier = Modifier.padding(bottom = 10.dp)) {
                     MonospaceLabel(
                         text = "H:${data.highTemp}°C",
                         color = weatherCardSecondaryText
@@ -167,28 +189,23 @@ fun MarsWeatherCard(
 
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(
-                    listOf(
-                        Pair("Wind speed", data.windSpeedDirString),
-                        Pair("Pressure", data.pressureString),
-                        Pair("UV Radiation", data.uvRadiationString),
-                        Pair("Martian date", data.martianData)
-                    )
-                ) { (label, data) ->
-                    DataBox(label, data)
-                }
+                items(data.dataBoxList) { DataBox(it) }
             }
         }
     }
 }
 
+data class DataBoxItem(
+    @StringRes val label: Int,
+    val data: String
+)
+
 @Composable
 fun DataBox(
-    label: String,
-    data: String
+    data: DataBoxItem
 ) {
     Column(
         modifier = Modifier
@@ -198,14 +215,14 @@ fun DataBox(
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
         Text(
-            text = label,
+            text = stringResource(data.label),
             color = weatherCardOrangeText,
             fontSize = 12.sp,
             fontFamily = FontFamily.Monospace
         )
 
         Text(
-            text = data,
+            text = data.data,
             color = weatherCardPrimaryText,
             fontSize = 16.sp
         )
@@ -260,10 +277,12 @@ private fun MarsWeatherPreview() {
                 currentTemp = -63,
                 highTemp = -52,
                 lowTemp = -73,
-                windSpeedDirString = "27 km/h NW",
-                pressureString = "600 Pa",
-                uvRadiationString = "0.5 mSv/day",
-                martianData = "914 Sol"
+                dataBoxList = listOf(
+                    DataBoxItem(R.string.wind_speed_label, "27 km/h NW"),
+                    DataBoxItem(R.string.pressure_label, "600 Pa"),
+                    DataBoxItem(R.string.label_uv_radiation, "0.5 mSv/day"),
+                    DataBoxItem(R.string.martian_date_label, "914 Sol")
+                ),
             )
         )
     }
