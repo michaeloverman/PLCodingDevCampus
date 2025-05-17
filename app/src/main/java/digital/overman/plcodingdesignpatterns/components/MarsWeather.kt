@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -93,12 +94,12 @@ fun MarsWeather(
     data: MarsWeatherData
 ) {
     MarsWeatherScaffold {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            MarsWeatherCard(data)
-        }
+        MarsWeatherCard(
+            data = data,
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize()
+        )
     }
 }
 
